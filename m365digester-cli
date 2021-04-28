@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+from m365digester.M365DigesterCLI import main
+# stub to allow cli call
+if __name__ == "__main__":
+    main()
+    
