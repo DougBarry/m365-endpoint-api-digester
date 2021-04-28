@@ -1,14 +1,21 @@
 m365-endpoint-api-digester
 ====
 ## An Microsoft 365 endpoint API utility
-For information see: https://docs.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service?view=o365-worldwide
+For information see: https://docs.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service?view=o365-worldwide  
 
 ```The Office 365 IP Address and URL web service helps you better identify and differentiate Office 365 network traffic, making it easier for you to evaluate, configure, and stay up to date with changes```
 
-An extension of: https://docs.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service?view=o365-worldwide#example-python-script
+An extension of offically provided start scripts at: https://docs.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service?view=o365-worldwide#example-python-script  
+
+---
+
+## Motivation
+This script began as part of a requirement to produce a [Squid3](http://www.squid-cache.org/) based proxy running on [Puppet](https://puppet.com/) manage infrastrcutrue, with the sole purpose of proxying [MS Teams](https://en.wikipedia.org/wiki/Microsoft_Teams) and [MS OneDrive](https://en.wikipedia.org/wiki/Microsoft_OneDrive) connections to [M365](https://en.wikipedia.org/wiki/Microsoft_365) from networks that were not permitted to be on a routable network, nor were they permitted to have generic proxied internet access in the interests of security. The first iteration of this script produced [YAML](https://en.wikipedia.org/wiki/YAML) only, and had little configurability. [Squid3](http://www.squid-cache.org/) uses [Splay Trees](https://en.wikipedia.org/wiki/Splay_tree), which does not work well when trying to translate the rules provided by the M365 Endpoint API ([see here](http://lists.squid-cache.org/pipermail/squid-users/2015-August/004937.html)), so a primitive 'collapser' is included, to reduce the rule sets produced to their minimum, and thus keep Squid happy.  
+
+---
 
 ## Configuration
-Uses the standard 'logging' from Python 2.7+ log levels:
+Uses the standard 'logging' module from Python ~2+ for log levels:
 - CRITICAL
 - ERROR
 - WARNING
@@ -45,13 +52,15 @@ Parameters can be set in several ways
 | -o | --output-file | OUTPUT_FILE | File name and path | Unset | Full path and filename for output file. Mutually exclusive with -u and -p |
 | -t | --output-type | OUTPUT_TYPE | String (Choice) | yaml | Output file type, from: [ CSV YAML ] |
 
+---
 
-### TODO: Use as a Docker container
+### Use as a Docker container
+**NOTE: This container is not yet published, but the included** ``Dockerfile`` **has been tested locally and does work.**
 ```bash
 docker run -v /host/output/target:/output:rw dougbarry/m365digester:latest -l /output/m365digester.log -k -j /output/m365digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -o /output/puppet-squid-snippet.yml
 ```
 
-### TODO: Use via docker-compose
+### Use via docker-compose
 ```yaml
 services:
   m365digester:
@@ -63,12 +72,14 @@ services:
       - /host/path/output:/output:rw
 ```
 
+---
+
 ### Use as command line application:
 ```bash
 ./m365digester-cli -l ./m365-digester.log -k -j ./m365-digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -o puppet-squid-snippet.yml
 ```
 
-## Use as module:
+### Use as module:
 Default config in ```M365Digester/Defaults.py```  
 Examples in ```examples/```  
 
@@ -87,7 +98,7 @@ pprint.pprint(app.rule_list)
 ### Module usage with argument parsing
 See ``M365Digester/M365DigesterCli.py``
 
-## Custom M365 domains in module
+### Custom M365 domains in module
 
 ```python
 from m365digester.M365Digester import M365Digester
@@ -106,3 +117,8 @@ config.setdefault('extra_known_domains', [
 app = M365Digester(config, my_logger)
 ...
 ```
+## Contributing
+If you have any issues or suggestions, [please submit an issue on GitHub](https://github.com/DougBarry/m365-endpoint-api-digester/issues). **All contributions considered and welcomed**
+
+## License
+[MIT License](https://github.com/DougBarry/m365-endpoint-api-digester/blob/main/LICENSE)
