@@ -9,6 +9,15 @@ An extension of offically provided start scripts at: https://docs.microsoft.com/
 
 ---
 
+## What does this do?
+Consumes the M365 endpoint API, which supplies a list of IPv4/6 addresses and DNS addresses which are used by M365 related products (Teams, OneDrive, Sharepoint & O365 Applications). With this list is is possible to create rules for network infrastructure devices such as firewalls, IDS, proxies etc, to permit, monitor, throttle or control access.
+
+This python command line application can currently digest the M365 API, and product output files in the following formats:
+- Generic CSV - For further processing
+- PuppetSquid - For use in a puppet controlled environment, likely as part of your CI/CD workflow. See ```m365digester/Outputs/PuppetSquid.py```
+- Squid3 via a template - For use directly in your Squid configuration. See ```m365digester/Outputs/SquidConfig.py``` and ```examples/squidconfig.template```
+
+
 ## Motivation
 This script began as part of a requirement to produce a [Squid3](http://www.squid-cache.org/) based proxy running on [Puppet](https://puppet.com/) manage infrastructure, with the sole purpose of proxying [MS Teams](https://en.wikipedia.org/wiki/Microsoft_Teams) and [MS OneDrive](https://en.wikipedia.org/wiki/Microsoft_OneDrive) connections to [M365](https://en.wikipedia.org/wiki/Microsoft_365) from networks that were not permitted to be on a routable network, nor were they permitted to have generic proxied internet access in the interests of security. The first iteration of this script produced [YAML](https://en.wikipedia.org/wiki/YAML) only, and had little configurability. [Squid3](http://www.squid-cache.org/) uses [Splay Trees](https://en.wikipedia.org/wiki/Splay_tree), which does not necessarily work well when trying to translate the rules provided by the M365 Endpoint API ([see here](http://lists.squid-cache.org/pipermail/squid-users/2015-August/004937.html)), so a primitive 'collapser' is included, to reduce the rule sets produced to their minimum, and thus keep Squid happy.  
 
@@ -51,7 +60,7 @@ Parameters can be set in several ways
 | -p | --output-prefix | OUTPUT_PREFIX | File name only without extension | '{APP_NAME}' | Filename without extension for output file |
 | -o | --output-file | OUTPUT_FILE | File name and path | Unset | Full path and filename for output file. Mutually exclusive with -u and -p |
 | -t | --output-type | OUTPUT_TYPE | String (Choice) | yaml | Output file type, from: [ GENERALCSV PUPPETSQUID SQUIDCONFIG ] |
-| | --output-template | OUTPUT_TEMPLATE | None | File name and path | Unset | Input template file for output file types supporting it |
+| | --output-template | OUTPUT_TEMPLATE | File name and path | Unset | Input template file for output file types supporting it (ie: ```SQUIDCONFIG```) |
 | | --linesep | LINESEP | String (Choice) | Python [```os.linesep```](https://docs.python.org/3/library/os.html#os.linesep) | Specify line separator (new line), CRLF on Windows, LF on nix* ")
 ---
 
