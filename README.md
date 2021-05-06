@@ -58,7 +58,7 @@ Parameters can be set in several ways
 ### Use as a Docker container
 **NOTE: This container is not yet published, but the included** ``Dockerfile`` **has been tested locally and does work.**
 ```bash
-docker run -v /host/output/target:/output:rw dougbarry/m365digester:latest -l /output/m365digester.log -k -j /output/m365digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -o /output/puppet-squid-snippet.yml
+docker run -v /host/output/target:/output:rw dougbarry/m365digester:latest -l /output/m365digester.log -k -j /output/m365digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -t puppetsquid -o /output/puppet-squid-snippet.yml
 ```
 
 ### Use via docker-compose
