@@ -251,10 +251,10 @@ def main():
 
     if output_type == 'puppetsquid':
         output_plugin = PuppetSquid(config, root_logger)
-    elif output_type == 'generalcsv':
-        output_plugin = GeneralCSV(config, root_logger)
-    if output_type == 'squidconfig':
+    elif output_type == 'squidconfig':
         output_plugin = SquidConfig(config, root_logger)
+    else: # output_type == 'generalcsv':
+        output_plugin = GeneralCSV(config, root_logger)
 
     exit_code = 0
 
