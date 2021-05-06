@@ -8,8 +8,8 @@ from m365digester.OutputInterface import OutputInterface
 
 import os
 
-class ExampleOutputSimpleConfig(Base, OutputInterface):
 
+class ExampleOutputSimpleConfig(Base, OutputInterface):
     __rule_list = dict()
     __ext = 'config'
     __target_file_path = ''
