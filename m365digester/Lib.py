@@ -12,7 +12,35 @@ class SQLiteContext(Enum):
     FILE = 1
 
 
+class LineSeparator(Enum):
+    OS_DEFAULT = 0
+    LF = 1
+    CRLF = 2
+
+    def __str__(self):
+        return self.name
+
+    def chars(self) -> str:
+        if self._value_ == self.LF.value:
+            return f"\n"
+        elif self._value_ == self.CRLF.value:
+            return f"\r\n"
+        return os.linesep
+
+    @staticmethod
+    def from_string(s: str):
+        try:
+            return LineSeparator[s]
+        except Exception as e:
+            logging.getLogger().warning(f"Unable to match requested line seperator '{s}' to known types. "
+                                        f"Using os.linesep")
+            return LineSeparator.OS_DEFAULT
+
+
 class Defaults(object):
+
+    linesep = LineSeparator.OS_DEFAULT
+    linesep_choices = list(LineSeparator)
 
     m365_web_service_url = 'https://endpoints.office.com'
 
@@ -30,6 +58,7 @@ class Defaults(object):
     pwd = os.path.dirname(os.path.realpath(__file__))
     app_started = datetime.datetime.now()
 
+    log_levels = list(filter(lambda x: x not in ['NOTSET', 'WARN', 'FATAL'], logging._nameToLevel.keys()))
     log_level_console = logging.INFO
     log_level_file = logging.DEBUG
     log_dts = app_started.strftime('%Y%m%d%H%M%S')
@@ -41,8 +70,8 @@ class Defaults(object):
     output_file_prefix = 'm365endpoint-output'
     output_file_extension = 'txt'
 
-    output_type = 'yaml'
-    output_types_available = ['csv', 'yaml']
+    output_type = 'generalcsv'
+    output_types_available = ['generalcsv', 'puppetsquid', 'squidconfig']
 
     # Efficiency mode - outputs everything into a de-duplicated ACL set for domain, and ips
     collapse_acl_sets = True
@@ -51,10 +80,10 @@ class Defaults(object):
     m365_request_guid = str(uuid.UUID(hashlib.sha256(str(uuid.getnode()).encode('utf-8')).hexdigest()[::2]))
     m365_service_instance_name = 'Worldwide'
     m365_service_instance_options = ('Worldwide',
-                             'China',
-                             'Germany',
-                             'USGovDoD',
-                             'USGovGCCHigh')
+                                     'China',
+                                     'Germany',
+                                     'USGovDoD',
+                                     'USGovGCCHigh')
 
     # What we consider a wildcard for domain names '*.something'
     wildcard_regex_pattern = '^(\*).'

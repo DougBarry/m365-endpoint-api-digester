@@ -3,7 +3,7 @@
 # Use as module example
 import os
 import logging
-from m365digester.Defaults import Defaults
+from m365digester.Lib import Defaults
 from m365digester.M365Digester import M365Digester
 from m365digester.Outputs.GeneralCSV import GeneralCSV
 from m365digester.Outputs.PuppetSquid import PuppetSquid

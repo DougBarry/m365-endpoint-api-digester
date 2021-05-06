@@ -9,8 +9,17 @@ An extension of offically provided start scripts at: https://docs.microsoft.com/
 
 ---
 
+## What does this do?
+Consumes the M365 endpoint API, which supplies a list of IPv4/6 addresses and DNS addresses which are used by M365 related products (Teams, OneDrive, Sharepoint & O365 Applications). With this list is is possible to create rules for network infrastructure devices such as firewalls, IDS, proxies etc, to permit, monitor, throttle or control access.
+
+This python command line application can currently digest the M365 API, and product output files in the following formats:
+- Generic CSV - For further processing
+- PuppetSquid - For use in a puppet controlled environment, likely as part of your CI/CD workflow. See ```m365digester/Outputs/PuppetSquid.py```
+- Squid3 via a template - For use directly in your Squid configuration. See ```m365digester/Outputs/SquidConfig.py``` and ```examples/squidconfig.template```
+
+
 ## Motivation
-This script began as part of a requirement to produce a [Squid3](http://www.squid-cache.org/) based proxy running on [Puppet](https://puppet.com/) manage infrastrcutrue, with the sole purpose of proxying [MS Teams](https://en.wikipedia.org/wiki/Microsoft_Teams) and [MS OneDrive](https://en.wikipedia.org/wiki/Microsoft_OneDrive) connections to [M365](https://en.wikipedia.org/wiki/Microsoft_365) from networks that were not permitted to be on a routable network, nor were they permitted to have generic proxied internet access in the interests of security. The first iteration of this script produced [YAML](https://en.wikipedia.org/wiki/YAML) only, and had little configurability. [Squid3](http://www.squid-cache.org/) uses [Splay Trees](https://en.wikipedia.org/wiki/Splay_tree), which does not work well when trying to translate the rules provided by the M365 Endpoint API ([see here](http://lists.squid-cache.org/pipermail/squid-users/2015-August/004937.html)), so a primitive 'collapser' is included, to reduce the rule sets produced to their minimum, and thus keep Squid happy.  
+This script began as part of a requirement to produce a [Squid3](http://www.squid-cache.org/) based proxy running on [Puppet](https://puppet.com/) manage infrastructure, with the sole purpose of proxying [MS Teams](https://en.wikipedia.org/wiki/Microsoft_Teams) and [MS OneDrive](https://en.wikipedia.org/wiki/Microsoft_OneDrive) connections to [M365](https://en.wikipedia.org/wiki/Microsoft_365) from networks that were not permitted to be on a routable network, nor were they permitted to have generic proxied internet access in the interests of security. The first iteration of this script produced [YAML](https://en.wikipedia.org/wiki/YAML) only, and had little configurability. [Squid3](http://www.squid-cache.org/) uses [Splay Trees](https://en.wikipedia.org/wiki/Splay_tree), which does not necessarily work well when trying to translate the rules provided by the M365 Endpoint API ([see here](http://lists.squid-cache.org/pipermail/squid-users/2015-August/004937.html)), so a primitive 'collapser' is included, to reduce the rule sets produced to their minimum, and thus keep Squid happy.  
 
 ---
 
@@ -40,24 +49,25 @@ Parameters can be set in several ways
 | -W | --disable-wildcards | WILDCARDS_DISABLED | Bool | False | Prevent the replacement of wildcards eg: '*.domain.com' with single prefix dots '.' |
 | -w | --wildcard-pattern | WILDCARD_PATTERN | String (regex) | '^(\*).' | Regex to use for the detection and replacement of wildcards |
 | -C | --collapse-acls-disable | ACL_COLLAPSE_DISABLED | Switch (Bool) | True | If disabled, ACLs will not be reduced to a smaller set based on inner/outer subdomain tree positioning |
-| -z | --categories-include | CATEGORIES_INCLUDE | Domain List (space seperator) | Allow Default | List of catergories from API to process |
+| -z | --categories-include | CATEGORIES_INCLUDE | Domain List (space seperator) | Allow Default | List of categories from API to process |
 | -q | --disable-domains | DOMAINS_DISABLED | Switch (Bool) | Disable processing of domain names from API | False | Prevent processing of domains from the API, they will not be included in output |
 | -n | --disable-ipv4 | IPV4_DISABLED | Switch (Bool) | Disable processing of IPv4 addresses from API | False | Prevent processing of IPv4 addresses from the API, they will not be included in output |
 | -m | --disable-ipv6 | IPV6_DISABLED | Switch (Bool) | Disable processing of IPv6 addresses from API | False | Prevent processing of IPv6 addresses from the API, they will not be included in output |
 | -i | --client-request-id | M365_REQUEST_ID | String (GUID) | Automatically generated from host NIC MAC | Request ID to use with M365 API |
 | -s | --service-instance | M365_SERVICE_INSTANCE | String (Choice) | Worldwide | Specify M365 service instance API type |
-| -e | --extra-known-domains | EXTRA_KNOWN_DOMAINS | Domain/Address List (space seperator) | Not specified | Use for your tenancy domain names or other extras including overrides, do not use quotations, wildcards permitted, ie: '-e mycompany-files.sharepoint.net *.live.com |
+| -e | --extra-known-domains | EXTRA_KNOWN_DOMAINS | Domain/Address List (space separator) | Not specified | Use for your tenancy domain names or other extras including overrides, do not use quotations, wildcards permitted, ie: '-e mycompany-files.sharepoint.net *.live.com |
 | -u | --output-path | OUTPUT_PATH | File path without name | './' | Path on disk to place output file. Mutually exclusive with -o |
 | -p | --output-prefix | OUTPUT_PREFIX | File name only without extension | '{APP_NAME}' | Filename without extension for output file |
 | -o | --output-file | OUTPUT_FILE | File name and path | Unset | Full path and filename for output file. Mutually exclusive with -u and -p |
-| -t | --output-type | OUTPUT_TYPE | String (Choice) | yaml | Output file type, from: [ CSV YAML ] |
-
+| -t | --output-type | OUTPUT_TYPE | String (Choice) | yaml | Output file type, from: [ GENERALCSV PUPPETSQUID SQUIDCONFIG ] |
+| | --output-template | OUTPUT_TEMPLATE | File name and path | Unset | Input template file for output file types supporting it (ie: ```SQUIDCONFIG```) |
+| | --linesep | LINESEP | String (Choice) | Python [```os.linesep```](https://docs.python.org/3/library/os.html#os.linesep) | Specify line separator (new line), CRLF on Windows, LF on nix* ")
 ---
 
 ### Use as a Docker container
 **NOTE: This container is not yet published, but the included** ``Dockerfile`` **has been tested locally and does work.**
 ```bash
-docker run -v /host/output/target:/output:rw dougbarry/m365digester:latest -l /output/m365digester.log -k -j /output/m365digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -o /output/puppet-squid-snippet.yml
+docker run -v /host/output/target:/output:rw dougbarry/m365digester:latest -l /output/m365digester.log -k -j /output/m365digester.db -z Allow Default Optimize -m -e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com -t puppetsquid -o /output/puppet-squid-snippet.yml
 ```
 
 ### Use via docker-compose
@@ -110,7 +120,7 @@ config.setdefault('extra_known_domains', [
     'mytenancy-files.sharepoint.com',
     'mytenancy-my.sharepoint.com',
     'mytenancy-myfiles.sharepoint.com',
-    # really just for *.officeapps.live.com but squids splay trees dont like it
+    # really just for *.officeapps.live.com but squids splay trees don't always like it
     '.live.com'
 ])
 ...

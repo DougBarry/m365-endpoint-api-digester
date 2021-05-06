@@ -12,10 +12,12 @@ import logging
 from pprint import pformat
 from argparse import ArgumentParser, RawTextHelpFormatter
 from m365digester import APP_NAME, APP_VERSION, APP_BRANCH
-from m365digester.Defaults import Defaults, SQLiteContext
+from m365digester.Lib import Defaults, SQLiteContext, LineSeparator
 from m365digester.M365Digester import M365Digester
+
 from m365digester.Outputs.GeneralCSV import GeneralCSV
 from m365digester.Outputs.PuppetSquid import PuppetSquid
+from m365digester.Outputs.SquidConfig import SquidConfig
 
 
 def main():
@@ -45,7 +47,8 @@ def main():
                                    f"\t-m {os.linesep}"
                                    f"\t-e testcompany-files.sharepoint.com testcompany-cloud.microsoft.com *.live.com {os.linesep}"
                                    f"\t-p rules-today {os.linesep}"
-                                   f"\t-t csv {os.linesep}"
+                                   f"\t-t squid {os.linesep}"
+                                   f"\t--output-template ./squidconfig.template {os.linesep}"
                                    f"\t-C",
                             usage=f"{platform_starter} [options]")
 
@@ -54,13 +57,13 @@ def main():
 
     logging_group = parser.add_argument_group('Logging', 'Logging functionality')
 
-    logging_group.add_argument('--log-level-file', choices=['debug', 'info', 'warn', 'error', 'critical'],
-                               dest='log_level_file',
+    logging_group.add_argument('--log-level-file', choices=Defaults.log_levels,
+                               dest='log_level_file', type=str.upper,
                                default=os.environ.get('LOG_LEVEL_FILE', Defaults.log_level_file),
                                help=f"Default: {logging.getLevelName(Defaults.log_level_file)}")
 
-    logging_group.add_argument('--log-level-console', choices=['debug', 'info', 'warn', 'error', 'critical'],
-                               dest='log_level_console',
+    logging_group.add_argument('--log-level-console', choices=Defaults.log_levels,
+                               dest='log_level_console', type=str.upper,
                                default=os.environ.get('LOG_LEVEL_CONSOLE', Defaults.log_level_console),
                                help=f"Default: {logging.getLevelName(Defaults.log_level_console)}")
 
@@ -139,7 +142,7 @@ def main():
                             default=os.environ.get('OUTPUT_PATH', Defaults.output_path),
                             help=f"Default: './'. Mutually exclusive with -o")
 
-    file_group.add_argument('-p', '--output-prefix', dest='output_prefix',
+    file_group.add_argument('-p', '--output-prefix', dest='output_file_prefix',
                             default=os.environ.get('OUTPUT_PREFIX', Defaults.output_file_prefix),
                             help=f"Default: '{Defaults.output_file_prefix}'. Mutually exclusive with -o")
 
@@ -151,6 +154,14 @@ def main():
     file_group.add_argument('-t', '--output-type', dest='output_type', choices=Defaults.output_types_available,
                             default=os.environ.get('OUTPUT_TYPE', Defaults.output_type),
                             help=f"Default: {Defaults.output_type}")
+
+    file_group.add_argument('--output-template', dest='output_template',
+                            default=os.environ.get('OUTPUT_TEMPLATE', None),
+                            help="Default: None. Not used by all output types")
+
+    file_group.add_argument('--linesep', dest='linesep', type=LineSeparator.from_string,
+                            default=os.environ.get('LINESEP', Defaults.linesep),
+                            choices=list(LineSeparator), help="Default: OS_DEFAULT (os.linesep)")
 
     args = parser.parse_args()
     # args = parser.parse_args(['-h'])
@@ -171,15 +182,12 @@ def main():
 
     # FIXME: Messy
     if isinstance(args.log_level_console, str):
-        levels = {
-            'critical': logging.CRITICAL,
-            'error': logging.ERROR,
-            'warn': logging.WARNING,
-            'warning': logging.WARNING,
-            'info': logging.INFO,
-            'debug': logging.DEBUG
-        }
-        level = levels.get(args.log_level_console, None)
+        level = None
+        if args.log_level_console.upper() in Defaults.log_levels:
+            try:
+                level = logging._nameToLevel[args.log_level_console.upper()]
+            except:
+                pass
         if level is None:
             log_level_console = Defaults.log_level_console
         else:
@@ -241,9 +249,11 @@ def main():
     output_plugin = None
     output_type = config.get('output_type', Defaults.output_type)
 
-    if output_type == 'yaml':
+    if output_type == 'puppetsquid':
         output_plugin = PuppetSquid(config, root_logger)
-    elif output_type == 'csv':
+    elif output_type == 'squidconfig':
+        output_plugin = SquidConfig(config, root_logger)
+    else: # output_type == 'generalcsv':
         output_plugin = GeneralCSV(config, root_logger)
 
     exit_code = 0
@@ -278,7 +288,7 @@ def main():
                         output_plugin.set_target_file_path(output_file)
                         output_plugin.run()
                     except Exception as e:
-                        root_logger.error(f"Exception during output plugin execution: {e}")
+                        root_logger.error(f"Exception during output plugin execution: {e.__class__.__name__} {e}")
                         exit_code = 1
 
     exit(exit_code)

@@ -1,0 +1,101 @@
+cache_mem                     512 MB
+maximum_object_size_in_memory 512 KB
+access_log                    daemon:/var/log/squid/access.log squid
+workers           3
+
+# Destination ACLs
+
+# ACLs from M365 endpoint digester
+$acl_set
+
+# Destination ACLs for 'company' ip ranges
+#Example: acl company-all-public-networks-ip dst 123.45.67.0/21
+#Example: acl company-loadbalancers dst 10.0.100.0/24
+
+# Destination ACLs for 'company' domains
+#Example: acl company-internalsites dstdomain .internal.mycompany
+#Example: acl company-externalsites dstdomain server1.external.mycompany.tld
+
+# Destination ACLs for company M365 authentication
+#Example: acl company-auth-domain dstdomain login.mycompany.tld
+
+# Source ACLs
+
+# Source ACLs for 'company' ip ranges
+#Example: acl company-loadbalancers src 10.0.100.0/24
+
+# acl fragment for m365-proxy-users
+#Example: acl m365-proxy-users src 172.16.100.0/24
+
+# Other ACLs
+
+# ACL to control permissions on via the direct CONNECT method (SSL/TLS)
+acl CONNECT method CONNECT
+
+# Consider these ports safe to connect out to via SSL/TLS
+acl SSL_ports port 443
+
+# Consider these ports safe to connect out to via HTTP
+acl Safe_ports port 443           # https
+acl Safe_ports port 80            # http
+
+# acl fragment for manager
+acl manager proto cache_object
+
+# All IPv4 networks
+acl all-networks src all
+
+# acl fragment for QUERY
+acl QUERY urlpath_regex cgi-bin \?
+
+# Rules
+
+# Rules allow
+
+# Rules from M365 endpoint digester
+$rule_allow
+
+# http_access fragment for manager localhost - deprecated in SQUID3
+http_access allow manager localhost
+
+# Rules deny
+
+# Deny outbound connections to any unsafe ports
+http_access deny !Safe_ports
+
+# Specifically deny using the CONNECT method (ACL) on non SSL/TLS ports
+http_access deny CONNECT !SSL_ports
+
+# Deny inbound traffic from anywhere not listed in our ACLs
+http_access deny all
+
+# http_access fragment for localhost
+http_access deny localhost
+
+# http_access fragment for manager
+http_access deny manager
+
+# Other SQUID settings
+
+# fragment for http_port 3128
+http_port 3128
+
+# cache_store_logs
+cache_store_log /var/log/squid/store.log
+
+# cache_mgr
+#Example: cache_mgr devops@company.tld
+
+# refresh_patterns
+refresh_pattern ^ftp:           1440    20%     10080
+refresh_pattern ^gopher:        1440    0%      1440
+refresh_pattern .               0       20%     4320
+
+# no_caches
+no_cache deny QUERY
+
+# coredump_dir
+coredump_dir coredump_dir /var/spool/squid
+
+# follow_x_forwarded_for
+#Example: follow_x_forwarded_for allow company-loadbalancers
