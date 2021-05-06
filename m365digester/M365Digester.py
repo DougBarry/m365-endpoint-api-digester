@@ -5,7 +5,7 @@ import sqlite3
 import tempfile
 import urllib.request
 from .Base import Base
-from .Defaults import Defaults, SQLiteContext
+from .Lib import Defaults, SQLiteContext
 
 
 class M365Digester(Base):

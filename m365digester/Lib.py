@@ -11,7 +11,8 @@ class SQLiteContext(Enum):
     MEMORY = 0
     FILE = 1
 
-class LineSeparators(Enum):
+
+class LineSeparator(Enum):
     OS_DEFAULT = 0
     LF = 1
     CRLF = 2
@@ -19,18 +20,27 @@ class LineSeparators(Enum):
     def __str__(self):
         return self.name
 
+    def chars(self) -> str:
+        if self._value_ == self.LF.value:
+            return f"\n"
+        elif self._value_ == self.CRLF.value:
+            return f"\r\n"
+        return os.linesep
+
     @staticmethod
     def from_string(s: str):
         try:
-            return LineSeparators[s]
+            return LineSeparator[s]
         except Exception as e:
-            return LineSeparators.OS_DEFAULT
+            logging.getLogger().warning(f"Unable to match requested line seperator '{s}' to known types. "
+                                        f"Using os.linesep")
+            return LineSeparator.OS_DEFAULT
 
 
 class Defaults(object):
 
-    linesep = os.linesep
-    linesep_choices = list(LineSeparators)
+    linesep = LineSeparator.OS_DEFAULT
+    linesep_choices = list(LineSeparator)
 
     m365_web_service_url = 'https://endpoints.office.com'
 
@@ -69,10 +79,10 @@ class Defaults(object):
     m365_request_guid = str(uuid.UUID(hashlib.sha256(str(uuid.getnode()).encode('utf-8')).hexdigest()[::2]))
     m365_service_instance_name = 'Worldwide'
     m365_service_instance_options = ('Worldwide',
-                             'China',
-                             'Germany',
-                             'USGovDoD',
-                             'USGovGCCHigh')
+                                     'China',
+                                     'Germany',
+                                     'USGovDoD',
+                                     'USGovGCCHigh')
 
     # What we consider a wildcard for domain names '*.something'
     wildcard_regex_pattern = '^(\*).'
