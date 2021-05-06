@@ -70,7 +70,7 @@ class Defaults(object):
     output_file_prefix = 'm365endpoint-output'
     output_file_extension = 'txt'
 
-    output_type = 'yaml'
+    output_type = 'generalcsv'
     output_types_available = ['generalcsv', 'puppetsquid', 'squidconfig']
 
     # Efficiency mode - outputs everything into a de-duplicated ACL set for domain, and ips
