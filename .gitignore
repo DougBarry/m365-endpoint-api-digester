@@ -1,1 +1,4 @@
 /ignore/
+m365digester/__pycache__/
+m365digester/Outputs/__pycache__/
+.idea/
