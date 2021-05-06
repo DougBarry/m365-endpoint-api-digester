@@ -57,13 +57,13 @@ def main():
 
     logging_group = parser.add_argument_group('Logging', 'Logging functionality')
 
-    logging_group.add_argument('--log-level-file', choices=['debug', 'info', 'warn', 'error', 'critical'],
-                               dest='log_level_file',
+    logging_group.add_argument('--log-level-file', choices=Defaults.log_levels,
+                               dest='log_level_file', type=str.upper,
                                default=os.environ.get('LOG_LEVEL_FILE', Defaults.log_level_file),
                                help=f"Default: {logging.getLevelName(Defaults.log_level_file)}")
 
-    logging_group.add_argument('--log-level-console', choices=['debug', 'info', 'warn', 'error', 'critical'],
-                               dest='log_level_console',
+    logging_group.add_argument('--log-level-console', choices=Defaults.log_levels,
+                               dest='log_level_console', type=str.upper,
                                default=os.environ.get('LOG_LEVEL_CONSOLE', Defaults.log_level_console),
                                help=f"Default: {logging.getLevelName(Defaults.log_level_console)}")
 
@@ -155,12 +155,13 @@ def main():
                             default=os.environ.get('OUTPUT_TYPE', Defaults.output_type),
                             help=f"Default: {Defaults.output_type}")
 
-    file_group.add_argument('--output-template', dest='output_template', default=None,
+    file_group.add_argument('--output-template', dest='output_template',
+                            default=os.environ.get('OUTPUT_TEMPLATE', None),
                             help="Default: None. Not used by all output types")
 
     file_group.add_argument('--linesep', dest='linesep', type=LineSeparator.from_string,
-                            default=Defaults.linesep, choices=list(LineSeparator),
-                            help="Default: OS_DEFAULT (os.linesep)")
+                            default=os.environ.get('LINESEP', Defaults.linesep),
+                            choices=list(LineSeparator), help="Default: OS_DEFAULT (os.linesep)")
 
     args = parser.parse_args()
     # args = parser.parse_args(['-h'])
@@ -181,15 +182,12 @@ def main():
 
     # FIXME: Messy
     if isinstance(args.log_level_console, str):
-        levels = {
-            'critical': logging.CRITICAL,
-            'error': logging.ERROR,
-            'warn': logging.WARNING,
-            'warning': logging.WARNING,
-            'info': logging.INFO,
-            'debug': logging.DEBUG
-        }
-        level = levels.get(args.log_level_console, None)
+        level = None
+        if args.log_level_console.upper() in Defaults.log_levels:
+            try:
+                level = logging._nameToLevel[args.log_level_console.upper()]
+            except:
+                pass
         if level is None:
             log_level_console = Defaults.log_level_console
         else:

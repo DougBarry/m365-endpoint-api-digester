@@ -58,6 +58,7 @@ class Defaults(object):
     pwd = os.path.dirname(os.path.realpath(__file__))
     app_started = datetime.datetime.now()
 
+    log_levels = list(filter(lambda x: x not in ['NOTSET', 'WARN', 'FATAL'], logging._nameToLevel.keys()))
     log_level_console = logging.INFO
     log_level_file = logging.DEBUG
     log_dts = app_started.strftime('%Y%m%d%H%M%S')
