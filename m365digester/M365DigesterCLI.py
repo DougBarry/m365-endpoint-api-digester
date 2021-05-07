@@ -136,6 +136,10 @@ def main():
                                 " Separate with spaces, do not use quotations, wildcards permitted,"
                                 " ie: '-e mycompany-files.sharepoint.net *.live.com'")
 
+    acl_group.add_argument('-x', '--exclude-domains', dest='exclude_domains', nargs="+",
+                           default=os.environ.get('EXCLUDE_DOMAINS', None),
+                           help="Default: Empty. Use for excluding domains from consideration.")
+
     file_group = parser.add_argument_group('IO', 'File IO')
 
     file_group.add_argument('-u', '--output-path', dest='output_path',

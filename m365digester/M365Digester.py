@@ -18,6 +18,7 @@ class M365Digester(Base):
     __wildcard_adjustments = 0
     __duplicate_count = 0
     __domain_subset_duplicate_count = 0
+    __excluded_count = 0
 
     @property
     def rule_list(self):
@@ -120,10 +121,10 @@ class M365Digester(Base):
         rows = c.fetchall()
         if len(rows) > 0:
             # Looks like there was a duplicate..
-            existing_acl = rows[0][2]
+            existing_acl_service_area_name = rows[0][2]
             self.debug(
                 f"Ignoring duplicate entry '{acl_address}' which would have been added to list '{service_area_name}'."
-                f"Existing '{acl_address}' is in '{existing_acl}'")
+                f"Existing '{acl_address}' is in '{existing_acl_service_area_name}'")
             self.__duplicate_count += 1
             return -1
         c.close()
@@ -136,6 +137,35 @@ class M365Digester(Base):
         c.execute(sql_insert, (acl_address, service_area_name))
         self.db_commit()
         return c.lastrowid
+
+    def db_remove_acl_from_all_lists(self, acl_address):
+        """
+        Removes a rule from the rule database.
+        """
+
+        # Check if the rule is in there...
+        sql_query = f"SELECT id, {Defaults.sqlitedb_column_address_name}, {Defaults.sqlitedb_column_service_area_name} FROM acls" \
+                    f" WHERE {Defaults.sqlitedb_column_address_name} = ?;"
+        c = self.db_cursor()
+        c.execute(sql_query, (acl_address,))
+
+        rows = c.fetchall()
+        for row in rows:
+            # Looks like it exists
+            existing_acl_id = row[0]
+            existing_acl_service_area_name = row[2]
+            self.debug(f"Found entry '{acl_address}' in service area '{existing_acl_service_area_name}'. Excluding..")
+
+            sql_delete = "DELETE FROM acls WHERE id = ?;"
+            c2 = self.db_cursor()
+            c2.execute(sql_delete, (existing_acl_id,))
+            self.__excluded_count += 1
+            c2.close()
+
+        self.db_commit()
+        c.close()
+
+        return
 
     def db_analyse_api_rule_lists(self, endpoint_set):
         """
@@ -376,7 +406,17 @@ class M365Digester(Base):
                     self.info(f"Adding extra known domain '{acl_address}' to '{extra_known_domains_list_name}'")
                     self.db_add_acl_to_rule_list(acl_address, extra_known_domains_list_name)
                 except Exception as e:
-                    self.error(f"Unable to add extra known domain to list. Error: {e}")
+                    self.error(f"Unable to add extra known domain to list. Error: {e.__class__.__name__}: {e}")
+
+        exclude_domains = self.config.get('exclude_domains', None)
+
+        if exclude_domains:
+            for acl_address in exclude_domains:
+                try:
+                    self.info(f"Removing excluded domain '{acl_address}' from consideration")
+                    self.db_remove_acl_from_all_lists(acl_address)
+                except Exception as e:
+                    self.error(f"Unable to remove excluded domain '{acl_address}', Error: {e.__class__.__name__}: {e}")
 
         # The API as of today 20210415 returns domains that are subdomains of high level ones, which Squid really
         # doesnt like
