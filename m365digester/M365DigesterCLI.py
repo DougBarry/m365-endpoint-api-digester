@@ -146,18 +146,32 @@ def main():
                             default=os.environ.get('M365_SERVICE_INSTANCE', Defaults.m365_service_instance_name),
                             help=f"Default: {Defaults.m365_service_instance_name}")
 
-    env_extra_known_addresses = None
-    if os.environ.get('EXTRA_KNOWN_ADDRESSES', None):
+    env_extra_known_domains = None
+    if os.environ.get('EXTRA_KNOWN_DOMAINS', None):
         try:
-            env_extra_known_addresses = str(os.environ.get('EXTRA_KNOWN_ADDRESSES')).split()
+            env_extra_known_domains = str(os.environ.get('EXTRA_KNOWN_DOMAINS')).split()
         except:
             pass
 
-    acl_group.add_argument('-e', '--extra-known-addresses', dest='extra_known_addresses', nargs="+",
-                           default=env_extra_known_addresses,
-                           help="Default: Empty. Use for your tenancy domain names or other extras including overrides."
-                                " Separate with spaces, do not use quotations, wildcards permitted,"
-                                " ie: '-e mycompany-files.sharepoint.net *.live.com 192.168.0.0/24")
+    acl_group.add_argument('-e', '--extra-known-domains', dest='extra_known_domains', nargs="+",
+                           default=env_extra_known_domains,
+                           help="Default: Empty. Use for your tenancy domain names or other extra domains "
+                                "including overrides. "
+                                "Separate with spaces, do not use quotations, wildcards permitted, "
+                                "ie: '-e mycompany-files.sharepoint.net *.live.com")
+
+    env_extra_known_ips = None
+    if os.environ.get('EXTRA_KNOWN_IPS', None):
+        try:
+            env_extra_known_ips = str(os.environ.get('EXTRA_KNOWN_IPS')).split()
+        except:
+            pass
+
+    acl_group.add_argument('-E', '--extra-known-ips', dest='extra_known_ips', nargs="+",
+                           default=env_extra_known_ips,
+                           help="Default: Empty. Use for other ip extras including overrides. "
+                                "Separate with spaces, do not use quotations, wildcards permitted, "
+                                "ie: '-E 92.168.0.0/24")
 
     env_exclude_addresses = None
     if os.environ.get('EXCLUDE_ADDRESSES', None):
@@ -185,7 +199,8 @@ def main():
                             help=f"Default: '{Defaults.output_file_prefix}.EXT' "
                                  f"where EXT is decided by output type. Mutually exclusive with -p and -u")
 
-    file_group.add_argument('-t', '--output-type', dest='output_type', choices=Defaults.output_types_available,
+    file_group.add_argument('-t', '--output-type', dest='output_type', type=str.lower,
+                            choices=Defaults.output_types_available,
                             default=os.environ.get('OUTPUT_TYPE', Defaults.output_type),
                             help=f"Default: {Defaults.output_type}")
 
