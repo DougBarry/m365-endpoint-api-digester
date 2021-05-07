@@ -55,7 +55,8 @@ Parameters can be set in several ways
 | -m | --disable-ipv6 | IPV6_DISABLED | Switch (Bool) | Disable processing of IPv6 addresses from API | False | Prevent processing of IPv6 addresses from the API, they will not be included in output |
 | -i | --client-request-id | M365_REQUEST_ID | String (GUID) | Automatically generated from host NIC MAC | Request ID to use with M365 API |
 | -s | --service-instance | M365_SERVICE_INSTANCE | String (Choice) | Worldwide | Specify M365 service instance API type |
-| -e | --extra-known-addresses | EXTRA_KNOWN_ADDRESSES | Domain/Address List (space separated) | Not specified | Use for your tenancy domain names or other extras including overrides, do not use quotations, wildcards permitted, ie: '-e mycompany-files.sharepoint.net *.live.com 192.168.0.0/24 autodiscover.mycompany.mail.onmicrosoft.com' |
+| -e | --extra-known-domains | EXTRA_KNOWN_DOMAINS | Domain list (space separated) | Not specified | Use for your tenancy domain names or other extras including overrides, do not use quotations, wildcards permitted, ie: '-e mycompany-files.sharepoint.net *.live.com autodiscover.mycompany.mail.onmicrosoft.com' |
+| -E | --extra-known-ips | EXTRA_KNOWN_IPS | IP address list (space separated) | Not specified | Use for other extras IP addresses including overrides, do not use quotations, wildcards not permitted, ie: '-E 192.168.1.0/24' |
 | -x | --exclude-addresses | EXCLUDE_ADDRESSES | Domain/Address list (space separated) | Not specified | Use to exclude entries from consideration when processing or generating files, ie: '-x autodiscover.*.onmicrosoft.com' |
 | -u | --output-path | OUTPUT_PATH | File path without name | './' | Path on disk to place output file. Mutually exclusive with -o |
 | -p | --output-prefix | OUTPUT_PREFIX | File name only without extension | '{APP_NAME}' | Filename without extension for output file |
