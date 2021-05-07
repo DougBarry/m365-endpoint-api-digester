@@ -396,17 +396,18 @@ class M365Digester(Base):
         rule_count = self.db_get_count_acls_in_rule_list()
         self.info(f"Total known rules from MS API: {rule_count}")
 
-        extra_known_domains = self.config.get('extra_known_domains', None)
+        extra_known_addresses = self.config.get('extra_known_addresses', None)
 
-        if extra_known_domains:
-            extra_known_domains_list_name = self.config.get('extra_known_domains_list_name', 'M365-Extra-Domains')
-            # Add UoGCloud domains to rule list
-            for acl_address in extra_known_domains:
+        if extra_known_addresses:
+            extra_known_address_list_name = self.config.get('extra_known_addresses_list_name',
+                                                            Defaults.extra_known_addresses_list_name)
+            # Add company domains to rule list
+            for acl_address in extra_known_addresses:
                 try:
-                    self.info(f"Adding extra known domain '{acl_address}' to '{extra_known_domains_list_name}'")
-                    self.db_add_acl_to_rule_list(acl_address, extra_known_domains_list_name)
+                    self.info(f"Adding extra known addresses '{acl_address}' to '{extra_known_address_list_name}'")
+                    self.db_add_acl_to_rule_list(acl_address, extra_known_address_list_name)
                 except Exception as e:
-                    self.error(f"Unable to add extra known domain to list. Error: {e.__class__.__name__}: {e}")
+                    self.error(f"Unable to add extra known address to list. Error: {e.__class__.__name__}: {e}")
 
         exclude_addresses = self.config.get('exclude_addresses', None)
 

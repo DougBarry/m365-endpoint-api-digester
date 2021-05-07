@@ -95,9 +95,18 @@ def main():
 
     acl_group = parser.add_argument_group('ACLs', 'ACL handling')
 
+    env_acl_collapse_disable = os.environ.get('ACL_COLLAPSE_DISABLED', 'UNSET')
+    if isinstance(env_acl_collapse_disable, str):
+        if env_acl_collapse_disable == 'UNSET':
+            env_acl_collapse_disable = Defaults.collapse_acl_sets
+        else:
+            env_acl_collapse_disable = (env_acl_collapse_disable.lower() in ['true', '1', 'y'])
+    else:
+        env_acl_collapse_disable = Defaults.collapse_acl_sets
+
     acl_group.add_argument('-C', '--collapse-acls-disable', dest='collapse_acl_sets',
                            action='store_false',
-                           default=os.environ.get('ACL_COLLAPSE_DISABLED', Defaults.collapse_acl_sets),
+                           default=not env_acl_collapse_disable,
                            help=f"Default: {'Collapsing of ACLs enabled' if Defaults.collapse_acl_sets else 'Collapsing of ACLs disabled'}")
 
     env_categories_include = None
@@ -137,18 +146,18 @@ def main():
                             default=os.environ.get('M365_SERVICE_INSTANCE', Defaults.m365_service_instance_name),
                             help=f"Default: {Defaults.m365_service_instance_name}")
 
-    env_extra_known_domains = None
-    if os.environ.get('EXTRA_KNOWN_DOMAINS', None):
+    env_extra_known_addresses = None
+    if os.environ.get('EXTRA_KNOWN_ADDRESSES', None):
         try:
-            env_extra_known_domains = str(os.environ.get('EXTRA_KNOWN_DOMAINS')).split()
+            env_extra_known_addresses = str(os.environ.get('EXTRA_KNOWN_ADDRESSES')).split()
         except:
             pass
 
-    acl_group.add_argument('-e', '--extra-known-domains', dest='extra_known_domains', nargs="+",
-                           default=env_extra_known_domains,
+    acl_group.add_argument('-e', '--extra-known-addresses', dest='extra_known_addresses', nargs="+",
+                           default=env_extra_known_addresses,
                            help="Default: Empty. Use for your tenancy domain names or other extras including overrides."
                                 " Separate with spaces, do not use quotations, wildcards permitted,"
-                                " ie: '-e mycompany-files.sharepoint.net *.live.com'")
+                                " ie: '-e mycompany-files.sharepoint.net *.live.com 192.168.0.0/24")
 
     env_exclude_addresses = None
     if os.environ.get('EXCLUDE_ADDRESSES', None):
@@ -272,7 +281,7 @@ def main():
             config['keep_sqlitedb'] = False
 
     output_plugin = None
-    output_type = config.get('output_type', Defaults.output_type)
+    output_type = config.get('output_type', Defaults.output_type).lower()
 
     if output_type == 'puppetsquid':
         output_plugin = PuppetSquid(config, root_logger)
