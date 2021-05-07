@@ -50,6 +50,7 @@ class Defaults(object):
     address_filter_ipv4_enabled = True
     address_filter_ipv6_enabled = True
     address_filter_domains_enabled = True
+    extra_known_addresses_list_name = "M365-Extra-Addresses"
 
     squid_src_acl_name = 'm365-proxy-users'
 
