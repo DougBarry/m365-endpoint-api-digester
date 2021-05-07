@@ -154,7 +154,7 @@ class M365Digester(Base):
             # Looks like it exists
             existing_acl_id = row[0]
             existing_acl_service_area_name = row[2]
-            self.debug(f"Found entry '{acl_address}' in service area '{existing_acl_service_area_name}'. Excluding..")
+            self.debug(f"Found address entry '{acl_address}' in service area '{existing_acl_service_area_name}'. Excluding..")
 
             sql_delete = "DELETE FROM acls WHERE id = ?;"
             c2 = self.db_cursor()
@@ -408,15 +408,15 @@ class M365Digester(Base):
                 except Exception as e:
                     self.error(f"Unable to add extra known domain to list. Error: {e.__class__.__name__}: {e}")
 
-        exclude_domains = self.config.get('exclude_domains', None)
+        exclude_addresses = self.config.get('exclude_addresses', None)
 
-        if exclude_domains:
-            for acl_address in exclude_domains:
+        if exclude_addresses:
+            for acl_address in exclude_addresses:
                 try:
-                    self.info(f"Removing excluded domain '{acl_address}' from consideration")
+                    self.info(f"Removing excluded address '{acl_address}' from consideration")
                     self.db_remove_acl_from_all_lists(acl_address)
                 except Exception as e:
-                    self.error(f"Unable to remove excluded domain '{acl_address}', Error: {e.__class__.__name__}: {e}")
+                    self.error(f"Unable to remove excluded address '{acl_address}', Error: {e.__class__.__name__}: {e}")
 
         # The API as of today 20210415 returns domains that are subdomains of high level ones, which Squid really
         # doesnt like
@@ -431,7 +431,8 @@ class M365Digester(Base):
         self.info(f"Warning count: {self.warning_count},"
                   f" wildcard adjustment count: {self.__wildcard_adjustments},"
                   f" duplicates discarded count: {self.__duplicate_count},"
-                  f" domain subset duplicate count: {self.__domain_subset_duplicate_count}.")
+                  f" domain subset duplicate count: {self.__domain_subset_duplicate_count},"
+                  f" excluded addresses counts: {self.__excluded_count}.")
 
         # List off rule set names
         self.info(f"Known source sets: ")

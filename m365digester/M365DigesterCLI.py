@@ -100,8 +100,15 @@ def main():
                            default=os.environ.get('ACL_COLLAPSE_DISABLED', Defaults.collapse_acl_sets),
                            help=f"Default: {'Collapsing of ACLs enabled' if Defaults.collapse_acl_sets else 'Collapsing of ACLs disabled'}")
 
+    env_categories_include = None
+    if os.environ.get('CATEGORIES_INCLUDE', None):
+        try:
+            env_categories_include = str(os.environ.get('CATEGORIES_INCLUDE')).split()
+        except:
+            pass
+
     acl_group.add_argument('-z', '--categories-include', dest='categories_filter_include', nargs="+",
-                           default=os.environ.get('CATEGORIES_INCLUDE', Defaults.categories_filter_include),
+                           default=env_categories_include if not None else Defaults.categories_filter_include,
                            choices=Defaults.categories_filter_include_choices,
                            help=f"Default: '{' '.join(Defaults.categories_filter_include)}'")
 
@@ -130,15 +137,29 @@ def main():
                             default=os.environ.get('M365_SERVICE_INSTANCE', Defaults.m365_service_instance_name),
                             help=f"Default: {Defaults.m365_service_instance_name}")
 
+    env_extra_known_domains = None
+    if os.environ.get('EXTRA_KNOWN_DOMAINS', None):
+        try:
+            env_extra_known_domains = str(os.environ.get('EXTRA_KNOWN_DOMAINS')).split()
+        except:
+            pass
+
     acl_group.add_argument('-e', '--extra-known-domains', dest='extra_known_domains', nargs="+",
-                           default=os.environ.get('EXTRA_KNOWN_DOMAINS', None),
+                           default=env_extra_known_domains,
                            help="Default: Empty. Use for your tenancy domain names or other extras including overrides."
                                 " Separate with spaces, do not use quotations, wildcards permitted,"
                                 " ie: '-e mycompany-files.sharepoint.net *.live.com'")
 
-    acl_group.add_argument('-x', '--exclude-domains', dest='exclude_domains', nargs="+",
-                           default=os.environ.get('EXCLUDE_DOMAINS', None),
-                           help="Default: Empty. Use for excluding domains from consideration.")
+    env_exclude_addresses = None
+    if os.environ.get('EXCLUDE_ADDRESSES', None):
+        try:
+            env_exclude_addresses = str(os.environ.get('EXCLUDE_ADDRESSES')).split()
+        except:
+            pass
+
+    acl_group.add_argument('-x', '--exclude-addresses', dest='exclude_addresses', nargs="+",
+                           default=env_exclude_addresses,
+                           help="Default: Empty. Use for excluding addresses from consideration.")
 
     file_group = parser.add_argument_group('IO', 'File IO')
 
