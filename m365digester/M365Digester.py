@@ -154,7 +154,8 @@ class M365Digester(Base):
             # Looks like it exists
             existing_acl_id = row[0]
             existing_acl_service_area_name = row[2]
-            self.debug(f"Found address entry '{acl_address}' in service area '{existing_acl_service_area_name}'. Excluding..")
+            self.debug(
+                f"Found address entry '{acl_address}' in service area '{existing_acl_service_area_name}'. Excluding..")
 
             sql_delete = "DELETE FROM acls WHERE id = ?;"
             c2 = self.db_cursor()
@@ -396,18 +397,31 @@ class M365Digester(Base):
         rule_count = self.db_get_count_acls_in_rule_list()
         self.info(f"Total known rules from MS API: {rule_count}")
 
-        extra_known_addresses = self.config.get('extra_known_addresses', None)
+        extra_known_domains = self.config.get('extra_known_domains', None)
 
-        if extra_known_addresses:
-            extra_known_address_list_name = self.config.get('extra_known_addresses_list_name',
-                                                            Defaults.extra_known_addresses_list_name)
+        if extra_known_domains:
+            extra_known_domains_list_name = self.config.get('extra_known_domains_list_name',
+                                                            Defaults.extra_known_domains_list_name)
             # Add company domains to rule list
-            for acl_address in extra_known_addresses:
+            for acl_address in extra_known_domains:
                 try:
-                    self.info(f"Adding extra known addresses '{acl_address}' to '{extra_known_address_list_name}'")
-                    self.db_add_acl_to_rule_list(acl_address, extra_known_address_list_name)
+                    self.info(f"Adding extra known addresses '{acl_address}' to '{extra_known_domains_list_name}'")
+                    self.db_add_acl_to_rule_list(acl_address, extra_known_domains_list_name)
                 except Exception as e:
-                    self.error(f"Unable to add extra known address to list. Error: {e.__class__.__name__}: {e}")
+                    self.error(f"Unable to add extra known domain to list. Error: {e.__class__.__name__}: {e}")
+
+        extra_known_ips = self.config.get('extra_known_ips', None)
+
+        if extra_known_ips:
+            extra_known_ips_list_name = self.config.get('extra_known_ips_list_name',
+                                                        Defaults.extra_known_ips_list_name)
+            # Add company domains to rule list
+            for acl_address in extra_known_ips:
+                try:
+                    self.info(f"Adding extra known addresses '{acl_address}' to '{extra_known_ips_list_name}'")
+                    self.db_add_acl_to_rule_list(acl_address, extra_known_ips_list_name)
+                except Exception as e:
+                    self.error(f"Unable to add extra known ip to list. Error: {e.__class__.__name__}: {e}")
 
         exclude_addresses = self.config.get('exclude_addresses', None)
 
