@@ -18,6 +18,7 @@ from m365digester.M365Digester import M365Digester
 from m365digester.Outputs.GeneralCSV import GeneralCSV
 from m365digester.Outputs.PuppetSquid import PuppetSquid
 from m365digester.Outputs.SquidConfig import SquidConfig
+from m365digester.Outputs.PaloAltoEDL import PaloAltoEDL
 
 
 def main():
@@ -302,6 +303,8 @@ def main():
         output_plugin = PuppetSquid(config, root_logger)
     elif output_type == 'squidconfig':
         output_plugin = SquidConfig(config, root_logger)
+    elif output_type == 'paloaltoedl':
+        output_plugin = PaloAltoEDL(config, root_logger)
     else: # output_type == 'generalcsv':
         output_plugin = GeneralCSV(config, root_logger)
 

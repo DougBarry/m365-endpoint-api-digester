@@ -74,7 +74,7 @@ class Defaults(object):
     output_file_extension = 'txt'
 
     output_type = 'generalcsv'
-    output_types_available = ['generalcsv', 'puppetsquid', 'squidconfig']
+    output_types_available = ['generalcsv', 'puppetsquid', 'squidconfig', 'paloaltoedl']
 
     # Efficiency mode - outputs everything into a de-duplicated ACL set for domain, and ips
     collapse_acl_sets = True
