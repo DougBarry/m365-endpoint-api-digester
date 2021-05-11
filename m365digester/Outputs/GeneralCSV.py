@@ -2,6 +2,7 @@
 #
 # Outputs a general purpose CSV file
 from m365digester.Base import Base
+from m365digester.Lib import Defaults
 from m365digester.OutputInterface import OutputInterface
 
 
@@ -35,9 +36,11 @@ class GeneralCSV(Base, OutputInterface):
 
         self.info(f"Writing general csv file to: '{self.__target_file_path}'")
 
+        linesep = self.config.get('linesep', Defaults.linesep).chars()
+
         with open(self.__target_file_path, mode='w') as target_file_handle:
 
-            print(f"\"ACL_LIST_NAME\",\"DESTINATION\",\"ACL_TYPE\",\"COMMENT\"", file=target_file_handle)
+            print(f"\"ACL_LIST_NAME\",\"DESTINATION\",\"ACL_TYPE\",\"COMMENT\"", file=target_file_handle, end=linesep)
 
             for service_area_name in self.__rule_list:
                 acl_comment = ''
@@ -54,4 +57,4 @@ class GeneralCSV(Base, OutputInterface):
                                    f"Found '{acl_destination.__class__.__name__}")
 
                     print(f"\"{service_area_name}\",\"{acl_destination}\",\"{acl_type}\",\"{acl_comment}\"",
-                          file=target_file_handle)
+                          file=target_file_handle, end=linesep)
